@@ -2,6 +2,7 @@ from django import forms
 from django.conf import settings
 from django.core.mail import BadHeaderError, send_mail
 from django.http import HttpResponse
+from .models import ApllyContent
 
 
 class ApplyForm(forms.Form):
@@ -26,12 +27,19 @@ class ApplyForm(forms.Form):
     )
 
     def send_email(self):
-        subject = "お問い合わせ"
+        subject = "ご応募"
         message = self.cleaned_data["message"]
         name = self.cleaned_data["name"]
         email = self.cleaned_data["email"]
         from_email = "{name} <{email}>".format(name=name, email=email)
         recipient_list = [settings.EMAIL_HOST_USER]  # 受信者リスト
+        content = ApllyContent()
+        content.message = self.cleaned_data["message"]
+        content.name = self.cleaned_data["name"]
+        content.email = self.cleaned_data["email"]
+        ApllyContent.objects.create(
+            name=content.name, email=content.email, message=content.message
+        )
         try:
             send_mail(subject, message, from_email, recipient_list)
         except BadHeaderError:
